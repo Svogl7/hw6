@@ -10,14 +10,47 @@
 // Note: image data returned by the API will only give you the filename;
 // prepend with `https://image.tmdb.org/t/p/w500/` to get the 
 // complete image URL
-
+let db = firebase.firestore()
 window.addEventListener('DOMContentLoaded', async function(event) {
   // Step 1: Construct a URL to get movies playing now from TMDB, fetch
   // data and put the Array of movie Objects in a variable called
   // movies. Write the contents of this array to the JavaScript
   // console to ensure you've got good data
   // ⬇️ ⬇️ ⬇️
+  
+  let response = await fetch('https://api.themoviedb.org/3/movie/now_playing?api_key=c70da2c8d7f253603a80b816bea81ac7&language=en-US')
+  let json = await response.json()
+  let movies = json.results
+  console.log(movies)
+  
+  for(let i=0; i < movies.length; i++) {
+    let movieId = movies[i].id 
+    let picture = movies[i].poster_path
 
+    document.querySelector('.movies').insertAdjacentHTML('beforeend', `<div class=".movies-${movieId} w-1/5 p-4">
+    <img src="https://image.tmdb.org/t/p/w500/${picture}" class="w-full">
+    <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
+  </div>`)
+
+  document.querySelector(`.watched-button`).addEventListener('click', async function(event){
+    event.preventDefault()
+    document.querySelector('.movies').classList.add('opacity-20')
+    console.log(`Movie ${movieId} was watched.`)
+    
+
+let querySnapshot = await db.collection('watched').get()
+//console.log(querySnapshot.size)
+
+let watched = querySnapshot.docs
+//console.log(watched)
+
+for (let x = 0; x < watched.length; x++){
+    watched = watched[x].data()
+    watched.name
+  
+}
+    })
+}
   // ⬆️ ⬆️ ⬆️ 
   // End Step 1
   
