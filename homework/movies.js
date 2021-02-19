@@ -11,6 +11,7 @@
 // prepend with `https://image.tmdb.org/t/p/w500/` to get the 
 // complete image URL
 let db = firebase.firestore()
+
 window.addEventListener('DOMContentLoaded', async function(event) {
   // Step 1: Construct a URL to get movies playing now from TMDB, fetch
   // data and put the Array of movie Objects in a variable called
@@ -23,83 +24,32 @@ window.addEventListener('DOMContentLoaded', async function(event) {
   let movies = json.results
   console.log(movies)
   
-  for(let i=0; i < movies.length; i++) {
-    let movieId = movies[i].id 
-    let picture = movies[i].poster_path
+  for (let i = 0; i < movies.length; i++) {
+    let movieId = movies[i].id  
+    let pictures = movies[i].poster_path
+    let movieWatchedData = await db.collection('watched').doc(`${movieId}`).get()
+    let watchedMovies = movieWatchedData.data()
+    console.log(watchedMovies)
 
-    document.querySelector('.movies').insertAdjacentHTML('beforeend', `<div class=".movies-${movieId} w-1/5 p-4">
-    <img src="https://image.tmdb.org/t/p/w500/${picture}" class="w-full">
-    <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
-  </div>`)
+    if (watchedMovies) {
+      document.querySelector(`.movies`).insertAdjacentHTML("beforeend", `
+      <div class="w-1/5 p-4 movie-${movieId} opacity-20"> 
+        <img src="https://image.tmdb.org/t/p/w500/${pictures}" class="w-full">
+        <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
+        </div>
+      `)
+    } else {document.querySelector(`.movies`).insertAdjacentHTML(`beforeend`, `
+      <div class="w-1/5 p-4 movie-${movieId}">
+      <img src="https://image.tmdb.org/t/p/w500/${pictures}" class="w-full">
+      <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
+      </div>
+    `)}
 
-  document.querySelector(`.watched-button`).addEventListener('click', async function(event){
-    event.preventDefault()
-    document.querySelector('.movies').classList.add('opacity-20')
-    console.log(`Movie ${movieId} was watched.`)
-    
-
-let querySnapshot = await db.collection('watched').get()
-//console.log(querySnapshot.size)
-
-let watched = querySnapshot.docs
-//console.log(watched)
-
-for (let x = 0; x < watched.length; x++){
-    watched = watched[x].data()
-    watched.name
-  
+    document.querySelector(`.movie-${movieId} .watched-button`).addEventListener('click', async function(event) {
+      event.preventDefault()
+      document.querySelector(`.movie-${movieId}`).classList.add('opacity-20')
+      await db.collection('watched').doc(`${movieId}`).set({})
+  })
 }
-    })
-}
-  // ⬆️ ⬆️ ⬆️ 
-  // End Step 1
   
-  // Step 2: 
-  // - Loop through the Array called movies and insert HTML
-  //   into the existing DOM element with the class name .movies
-  // - Include a "watched" button to click for each movie
-  // - Give each "movie" a unique class name based on its numeric
-  //   ID field.
-  // Some HTML that would look pretty good... replace with real values :)
-  // <div class="w-1/5 p-4 movie-abcdefg1234567">
-  //   <img src="https://image.tmdb.org/t/p/w500/moviePosterPath.jpg" class="w-full">
-  //   <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
-  // </div>
-  // ⬇️ ⬇️ ⬇️
-
-  // ⬆️ ⬆️ ⬆️ 
-  // End Step 2
-
-  // Step 3: 
-  // - Attach an event listener to each "watched button"
-  // - Be sure to prevent the default behavior of the button
-  // - When the "watched button" is clicked, changed the opacity
-  //   of the entire "movie" by using .classList.add('opacity-20')
-  // - When done, refresh the page... does the opacity stick?
-  // - Bonus challenge: add code to "un-watch" the movie by
-  //   using .classList.contains('opacity-20') to check if 
-  //   the movie is watched. Use .classList.remove('opacity-20')
-  //   to remove the class if the element already contains it.
-  // ⬇️ ⬇️ ⬇️
-
-  // ⬆️ ⬆️ ⬆️ 
-  // End Step 3
-
-  // Step 4: 
-  // - Properly configure Firebase and Firebase Cloud Firestore
-  // - Inside your "watched button" event listener, you wrote in
-  //   step 3, after successfully setting opacity, persist data
-  //   for movies watched to Firebase.
-  // - The data could be stored in a variety of ways, but the 
-  //   easiest approach would be to use the TMDB movie ID as the
-  //   document ID in a "watched" Firestore collection.
-  // - Hint: you can use .set({}) to create a document with
-  //   no data – in this case, the document doesn't need any data;
-  //   if a TMDB movie ID is in the "watched" collection, the 
-  //   movie has been watched, otherwise it hasn't.
-  // - Modify the code you wrote in Step 2 to conditionally
-  //   make the movie opaque if it's already watched in the 
-  //   database.
-  // - Hint: you can use if (document) with no comparison
-  //   operator to test for the existence of an object.
 })
